@@ -1,0 +1,22 @@
+---
+title: "Ngoc Dieu Hanh Nguyen"
+subtitle: "Student"
+image: profile (2).jpg
+about: # https://quarto.org/docs/websites/website-about.html
+  template: solana
+  links:
+    - icon: github
+      text: Github
+      href: https://github.com/NgocDieuHanhNguyen
+
+---
+
+A little bit about me and my life.
+
+## Education
+
+University of XYZ, City \| Location \| Sept 20XX - June 20XX
+
+## Experience
+
+Workplace \| Job title \| April 20XX - present

@@ -1,0 +1,27 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "Ngoc Dieu Hanh Nguyen"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: about.qmd
+        text: About
+      - href: My_Final_Project.qmd
+        text: My Final Project
+        icon: megaphone
+    tools:
+      - icon: github
+      - href: https://github.com/NgocDieuHanhNguyen
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+
+editor: visual
+

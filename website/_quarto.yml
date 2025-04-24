@@ -1,0 +1,23 @@
+project:
+  type: website
+
+website:
+  title: "Ngoc Dieu Hanh Nguyen"
+  open-graph: true # https://quarto.org/docs/websites/website-tools.html#open-graph
+  page-footer: "Made with ❤️ and Quarto"
+  navbar:
+    right:
+      - text: Home
+        href: index.qmd
+      - about.qmd
+      - href: My_Final_Project.qmd
+        text: My Final Project
+        icon: megaphone
+    tools:
+      - icon: github
+      - href: https://github.com/NgocDieuHanhNguyen
+      
+format:
+  html:
+    theme: [cosmo, styles.scss]
+
