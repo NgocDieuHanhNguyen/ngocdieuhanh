@@ -37,8 +37,12 @@ library(dplyr)
 library(ggplot2)
 library(rsample)
 library(recipes)
-library(tidymodels)
+library(parsnip)
+library(workflows)
+library(tune)
+library(yardstick)
 library(glmnet)
+library(dials) 
 library(naniar)
 library(softImpute)
 ```
@@ -50,11 +54,23 @@ library(softImpute)
 | [dplyr](https://dplyr.tidyverse.org/) | to massage and summarize data |
 | [rsample](https://rsample.tidymodels.org/) | to split data into training and test sets |
 | [ggplot2](https://ggplot2.tidyverse.org/) | to create nice-looking and informative graphs |
+| [recipes](https://recipes.tidymodels.org/) | to preprocess data before modeling |
+| [parsnip](https://parsnip.tidymodels.org/) | to define and fit machine learning models like linear regression |
+| [workflows](https://workflows.tidymodels.org/) | to combine preprocessing and modeling steps into a single pipeline |
+| [tune](https://tune.tidymodels.org/) | to tune model parameters using resampling techniques |
+| [yardstick](https://yardstick.tidymodels.org/) | to evaluate model performance using metrics like RMSE and R² |
+| [glmnet](https://glmnet.stanford.edu/) | to build regularized regression models (Lasso) for feature selection |
+| [dials](https://dials.tidymodels.org/) | to define and manage hyperparameters for tuning models |
+| [naniar](https://naniar.njtierney.com/) | to explore and visualize patterns of missing data |
+| [softImpute](https://cran.r-project.org/package=softImpute) | to impute missing continuous values using matrix completion |
 
 
 ## Data Description
 
-The data I am using for this project is from the "Education & Career Success" dataset available on Kaggle, a popular platform for sharing datasets. This dataset was created and updated by Adil Shamim, who designed it to explore the relationship between academic performance and career outcomes, such as starting salary and job offers. The dataset includes 5,000 records and covers variables such as high school GPA, SAT scores, university ranking, internships completed, and starting salary, among others. Although the dataset is synthetic, it was generated using real-world trends and data from education and career success studies. The primary purpose of this dataset is to allow users to conduct exploratory data analysis, create predictive models, and gain insights into factors influencing career success based on education. Particularly, the data is not directly gathered from real students, but is instead simulated based on existing trends to provide an accessible resource for data analysis.
+The data I am using for this project is from the "Education & Career Success" dataset available on Kaggle, a popular platform for sharing datasets. This dataset was created and updated by Adil Shamim, who designed it to explore the relationship between academic performance and career outcomes, such as starting salary and job offers. The dataset includes 5,000 records and covers variables such as high school GPA, SAT scores, university ranking, internships completed, and starting salary, among others. Although the dataset is synthetic, it was generated using real-world trends and data from education and career success studies. The primary purpose of this dataset is to allow users to conduct exploratory data analysis, create predictive models, and gain insights into factors influencing career success based on education. Particularly, the data is not directly gathered from real students, but is instead simulated based on existing trends to provide an accessible resource for data analysis. Below is the link of the dataset:
+
+[Education and Career Success – Kaggle Dataset](https://www.kaggle.com/datasets/adilshamim8/education-and-career-success)
+
 
 ```{r}
 #| label: import data
@@ -394,6 +410,12 @@ lm_metrics
 
 The predictive modeling analysis reveals that the academic factors considered `High_School_GPA`, `SAT_Score`, and `University_GPA` do not significantly predict `Starting_Salary`. The model's performance metrics, including a very low R-squared value (0.0017) and high RMSE ($\${14,550.38}$), indicate that these variables account for very little of the variability in starting salaries. 
 
+
+Due to the poor performance of the linear regression model and the possibility that not all academic variables meaningfully contribute to predicting starting salary, I extended the analysis by fitting a Lasso regression model. Lasso (Least Absolute Shrinkage and Selection Operator) is a type of regularized linear regression that adds a penalty term to the loss function, which can shrink some coefficients to exactly zero. This makes it especially useful for feature selection and reducing model complexity when dealing with potentially weak or irrelevant predictors.
+
+Although this model uses the same predictors including `High_School_GPA`, `SAT_Score`, and `University_GPA` as the earlier linear regression, the regularization imposed by Lasso may help determine whether any of these variables meaningfully contribute to explaining variance in `Starting_Salary`. The model was tuned using cross-validation to identify the optimal level of penalty ($\lambda$) for balancing bias and variance.
+
+
 ```{r}
 # Lasso model
 lasso_model <- linear_reg(penalty = tune(), mixture = 1) |> 
@@ -469,9 +491,11 @@ lasso_metrics <- lasso_preds |>
 lasso_metrics
 ```
 
-The Lasso regression model yielded performance metrics that are nearly identical to those of the earlier linear regression model, with an RMSE of approximately $\${14,550}$, an MAE of around $\${11,909}$, and a very low R-squared value of $0.0017$. These results indicate that the inclusion of regularization did not improve the model's predictive ability, and the selected academic variables `High_School_GPA`, `SAT_Score`, and `University_GPA` still explain virtually none of the variation in starting salary. This reinforces the conclusion that these academic metrics alone are not strong predictors of early career financial outcomes in this dataset.
+The Lasso regression model yielded performance metrics that are nearly identical to those of the earlier linear regression model, with an RMSE of approximately $\${14,550}$, an MAE of around $\${11,909}$, and a very low R-squared value of $0.0017$. These results indicate that the inclusion of regularization did not improve the model's predictive ability, and the selected academic variables `High_School_GPA`, `SAT_Score`, and `University_GPA` still explain virtually none of the variation in `Starting_Salary`. This reinforces the conclusion that these academic metrics alone are not strong predictors of early career financial outcomes in this dataset.
 
-In this analysis, both the multiple linear regression and Lasso regression models were used to examine whether academic performance, which is measured by high school GPA, SAT score, and university GPA, could predict starting salary after graduation. The results from both models were nearly identical, with very low R-squared values (around 0.0017) and relatively high RMSE values (approximately \$14,550). These outcomes indicate that academic metrics alone explain virtually none of the variation in starting salary within this dataset. Even after applying regularization through Lasso, model performance did not improve, suggesting that the predictors used lack meaningful association with the outcome variable. This highlights a key limitation of the dataset, which is both synthetic and overly simplified. It also reinforces the importance of incorporating other real-world factors such as internships, work experience, networking, or soft skills when modeling career outcomes. Without these, academic performance alone appears insufficient as a predictor of early career financial success.
+
+In this analysis, both the multiple linear regression and Lasso regression models were used to examine whether academic performance, which is measured by high school GPA, SAT score, and university GPA, could predict starting salary after graduation. The results from both models were nearly identical, with very low R-squared values (around 0.0017) and relatively high RMSE values (approximately $\${14,550}$). These outcomes indicate that academic metrics alone explain virtually none of the variation in starting salary within this dataset. Even after applying regularization through Lasso, model performance did not improve, suggesting that the predictors used lack meaningful association with the outcome variable. This highlights a key limitation of the dataset, which is both synthetic and overly simplified. It also reinforces the importance of incorporating other real-world factors such as internships, work experience, networking, or soft skills when modeling career outcomes. Without these, academic performance alone appears insufficient as a predictor of early career financial success.
+
 
 ## Insights
 
@@ -492,12 +516,12 @@ After conducting both linear regression and Lasso regression models using `High_
 
 There are several key limitations that affect the reliability and generalizability of the modeling results in this project. First, the models consistently performed poorly across all evaluation metrics ($R^2 \approx 0.0017$), meaning that they failed to meaningfully predict starting salaries for almost all individuals in the dataset. This suggests that starting salaries are influenced by factors not captured in the academic variables used, and that the model is particularly weak for students across the board whether high or low achieving because it lacks relevant predictors such as internships, job field, networking, or soft skills.
 
-A major limitation lies in the nature of the dataset itself, which is synthetic and not based on actual student or employment records. As a result, the relationships between variables do not always reflect real-world patterns. For example, `High_School_GPA` and `University_GPA` have very similar, overly uniform distributions, which is unrealistic; in reality, University GPA tends to be more tightly clustered, and often correlates with earlier academic performance. Additionally, SAT scores are suspiciously centered and lack the expected skewness seen in real testing data. These issues likely distort any potential predictive relationships and limit the realism of the analysis.
+A major limitation lies in the nature of the dataset itself, which is synthetic and not based on actual student or employment records. As a result, the relationships between variables do not always reflect real-world patterns. For example, `High_School_GPA` and `University_GPA` have very similar, overly uniform distributions, which is unrealistic; in reality, University GPA tends to be more tightly clustered, and often correlates with earlier academic performance. In addition, SAT scores are suspiciously centered and lack the expected skewness seen in real testing data. These issues likely distort any potential predictive relationships and limit the realism of the analysis.
 
-The modeling methods used including linear regression and Lasso regression, which rely on certain assumptions, including linearity and the meaningfulness of the input features. Since the features used lack strong theoretical or empirical justification in this dataset, the assumptions behind these methods are weakly supported, which further undermines the model's validity. Moreover, while regularization helps with overfitting, it cannot fix fundamentally poor data quality or irrelevant features.
+The modeling methods used involving linear regression and Lasso regression, which rely on certain assumptions, including linearity and the meaningfulness of the input features. Since the features used lack strong theoretical or empirical justification in this dataset, the assumptions behind these methods are weakly supported, which further undermines the model's validity. Moreover, while regularization helps with overfitting, it cannot fix fundamentally poor data quality or irrelevant features.
 
 From an ethical standpoint, while the data is simulated and anonymized, there are still considerations about how such analysis could be interpreted. For example, using academic performance to predict salary outcomes might unintentionally reinforce meritocratic assumptions that overlook systemic inequalities in access to education or professional opportunities. In the real world, decisions based on such limited models could unfairly disadvantage individuals whose strengths lie outside standardized academic metrics.
 
 To improve this analysis in the future, better data collection is essential, ideally using real, anonymized graduate outcome surveys that include richer variables: major or field of study, internship experience, job sector, geographic location, and demographic background. With more realistic and complete data, a wider range of modeling approaches such as tree-based models or mixed-effects models could be explored with more confidence in the results.
 
-### Reflection (Optional Subsection)
+
